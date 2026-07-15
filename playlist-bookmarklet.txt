@@ -1,0 +1,20 @@
+javascript:(async function(){
+  try {
+    const match = window.location.pathname.match(/\/playlist\/([a-zA-Z0-9-]+)/);
+    if(!match) {
+      alert("このブックマークレットはSunoのプレイリストページ (https://suno.com/playlist/...) で実行してください。");
+      return;
+    }
+    let token = '';
+    if (window.Clerk && window.Clerk.session) {
+      token = await window.Clerk.session.getToken();
+    } else {
+      const cMatch = document.cookie.match(/__session=([^;]+)/);
+      token = cMatch ? cMatch[1] : '';
+    }
+    const url = encodeURIComponent(window.location.href);
+    window.open(`http://192.168.1.26:3005/?suno=${url}&token=${token}`, '_blank');
+  } catch(e) {
+    alert("エラー: " + e.message);
+  }
+})();

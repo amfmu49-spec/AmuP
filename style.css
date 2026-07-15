@@ -1,0 +1,461 @@
+:root {
+  --wood-bg: url('/assets/wood_bg_no_text.png');
+  --frame-size: 520px;
+  --frame-x: 0px;
+  --frame-y: 0px;
+  --shadow-dark: rgba(0, 0, 0, 0.6);
+  --shadow-light: rgba(255, 255, 255, 0.3);
+  --engrave-fill: rgba(40, 20, 10, 0.8);
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+  background-color: #000;
+}
+
+/* ── Base container ─────────────────────────── */
+#player-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-image: var(--wood-bg);
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.8s ease-in-out;
+  position: relative;
+}
+
+/* ── Zones ───────────────────────────────────── */
+#frame-zone {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  overflow: visible;
+}
+
+/* ── Album art frame ─────────────────────────── */
+#album-art-frame {
+  width: var(--frame-size);
+  height: var(--frame-size);
+  max-width: 90%;
+  max-height: 90%;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  left: var(--frame-x);
+  top: var(--frame-y);
+  flex-shrink: 0;
+  background-color: #1a1a1a;
+  border: 10px solid #1a1a1a;
+  box-shadow:
+    12px 16px 40px rgba(0, 0, 0, 0.75),
+    inset 8px 8px 15px rgba(0, 0, 0, 0.9),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+/* ── Crosshairs ──────────────────────────────── */
+.crosshair {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  z-index: 10;
+}
+#crosshair-h {
+  width: 100%;
+  height: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+#crosshair-v {
+  width: 2px;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.crosshair.visible { opacity: 1; }
+.crosshair.snapped {
+  background-color: rgba(0, 255, 100, 0.8);
+  box-shadow: 0 0 8px rgba(0, 255, 100, 0.5);
+}
+
+/* ── Album art image ─────────────────────────── */
+#album-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+/* ── Info / Controls zone ────────────────────── */
+#player-info-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  padding: 2vmin 3vmin;
+  box-sizing: border-box;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  overflow: hidden;
+  gap: 0;
+}
+
+/* ── Info section (fade target) ──────────────── */
+.info-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  transition: opacity 0.5s ease;
+}
+
+h1#song-title {
+  font-size: clamp(14px, 2.8vw, 36px);
+  font-weight: 300;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  margin: 0 0 10px 0;
+  text-shadow:
+    1px 1px 2px var(--shadow-light),
+    -1px -1px 3px var(--shadow-dark);
+}
+
+h2#artist-name {
+  font-size: clamp(10px, 1.6vw, 22px);
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-align: center;
+  color: transparent;
+  margin: 0 0 30px 0;
+  text-transform: uppercase;
+  background-color: rgba(40, 20, 10, 0.6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow:
+    1px 1px 1px var(--shadow-light),
+    -1px -1px 2px var(--shadow-dark);
+}
+
+/* ── Progress bar ────────────────────────────── */
+.progress-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 90%;
+  margin-bottom: 24px;
+}
+
+.progress-section span {
+  font-size: clamp(10px, 1.1vw, 16px);
+  font-weight: 300;
+  color: transparent;
+  background-color: rgba(40, 20, 10, 0.6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow:
+    1px 1px 1px var(--shadow-light),
+    -1px -1px 2px var(--shadow-dark);
+  min-width: 36px;
+  text-align: center;
+}
+
+#seek-bar {
+  flex-grow: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: transparent;
+  border-radius: 3px;
+  outline: none;
+  box-shadow:
+    inset 1px 1px 3px var(--shadow-dark),
+    inset -1px -1px 3px var(--shadow-light);
+}
+#seek-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--engrave-fill);
+  cursor: pointer;
+  box-shadow:
+    1px 1px 2px var(--shadow-light),
+    -1px -1px 2px var(--shadow-dark);
+}
+#seek-bar::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--engrave-fill);
+  cursor: pointer;
+  border: none;
+  box-shadow:
+    1px 1px 2px var(--shadow-light),
+    -1px -1px 2px var(--shadow-dark);
+}
+
+/* ── Playback controls ───────────────────────── */
+.controls-section {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2.5vw, 44px);
+  flex-shrink: 0;
+}
+
+.control-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  font-size: clamp(18px, 2.4vw, 36px);
+  font-weight: 200;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--engrave-fill);
+  text-shadow:
+    1px 1px 1px var(--shadow-light),
+    -1px -1px 2px var(--shadow-dark);
+  transition: transform 0.1s ease-out, text-shadow 0.1s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  flex-shrink: 0;
+}
+.control-btn:active {
+  transform: translateY(2px) scale(0.98);
+}
+
+#btn-play-pause {
+  font-weight: 400;
+  font-size: clamp(24px, 3vw, 46px);
+  width: 52px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Corner controls (small utility buttons) ── */
+#corner-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+  margin-top: 20px;
+  flex-shrink: 0;
+}
+
+/* Horizontal layout: top of controls panel (right side) */
+body.view-horizontal #corner-controls {
+  flex-direction: row;
+  margin-top: 24px;
+}
+
+/* Vertical layout: centered below play buttons */
+body.view-vertical #corner-controls {
+  flex-direction: row;
+  margin-top: 16px;
+}
+
+#bg-switcher {
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  border-radius: 50%;
+}
+
+#layout-btn {
+  width: auto;
+  height: auto;
+  padding: 8px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+#layout-btn:hover {
+  background: none;
+  color: rgba(255, 255, 255, 1);
+  box-shadow: none;
+  transform: scale(1.15);
+}
+
+/* ── HORIZONTAL layout ───────────────────────── */
+body.view-horizontal #player-container {
+  flex-direction: row;
+}
+
+/* Always 50/50 in horizontal mode */
+body.view-horizontal #frame-zone {
+  flex: 0 0 50% !important;
+  width: 50% !important;
+  overflow: hidden;
+  padding: 5vh 2vh 5vh 5vh; /* match left wood gap to top/bottom */
+  box-sizing: border-box;
+}
+
+body.view-horizontal #player-info-controls {
+  flex: 0 0 50% !important;
+  width: 50% !important;
+}
+
+body.view-horizontal #album-art-frame {
+  /* Fit within the zone: bounded by height */
+  width: min(var(--frame-size), 88vh);
+  height: min(var(--frame-size), 88vh);
+  max-width: 95%;
+  max-height: 95%;
+}
+
+body.view-horizontal #player-info-controls {
+  padding: 2vh 3vw;
+  gap: 0;
+  justify-content: center;
+}
+
+body.view-horizontal h1#song-title {
+  font-size: clamp(14px, 3vh, 36px);
+  margin-bottom: 0.6vh;
+  white-space: normal;
+}
+
+body.view-horizontal h2#artist-name {
+  font-size: clamp(10px, 1.8vh, 22px);
+  margin-bottom: 2.5vh;
+}
+
+body.view-horizontal .progress-section {
+  margin-bottom: 2.5vh;
+  width: 88%;
+}
+
+body.view-horizontal .progress-section span {
+  font-size: clamp(10px, 1.4vh, 16px);
+}
+
+body.view-horizontal .controls-section {
+  gap: clamp(16px, 3vh, 44px);
+}
+
+body.view-horizontal .control-btn {
+  font-size: clamp(18px, 3.5vh, 42px);
+}
+
+body.view-horizontal #btn-play-pause {
+  font-size: clamp(22px, 4.5vh, 52px);
+  width: auto;
+}
+
+
+/* Portrait device in horizontal mode → rotate 90° */
+@media (orientation: portrait) {
+  body.view-horizontal #player-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100vh;
+    height: 100vw;
+    transform: translate(-50%, -50%) rotate(90deg);
+    padding: 0;
+    gap: 0;
+  }
+
+  body.view-horizontal #album-art-frame {
+    border-width: 8px;
+    left: var(--frame-y);
+    top: calc(var(--frame-x) * -1);
+  }
+
+  body.view-horizontal h1#song-title  { font-size: 5vh; }
+  body.view-horizontal h2#artist-name { font-size: 2.2vh; margin-bottom: 2vh; }
+
+  body.view-horizontal .progress-section span {
+    font-size: 1.8vh;
+    min-width: 5vh;
+  }
+  body.view-horizontal .progress-section { margin-bottom: 2vh; }
+
+  body.view-horizontal .controls-section { gap: 4vh; }
+  body.view-horizontal .control-btn      { font-size: 4vh; }
+  body.view-horizontal #btn-play-pause   { font-size: 5.5vh; width: auto; }
+
+  body.view-horizontal #player-info-controls {
+    padding: 2vh 3vw;
+    gap: 0;
+    justify-content: center;
+  }
+}
+
+/* ── VERTICAL layout ─────────────────────────── */
+body.view-vertical #player-container {
+  flex-direction: column;
+  transform: none;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Vertical: frame zone fills top half */
+body.view-vertical #frame-zone {
+  flex: 0 0 52%;
+  min-height: 0;
+}
+
+/* Vertical: controls zone fills bottom half */
+body.view-vertical #player-info-controls {
+  flex: 0 0 48%;
+  padding: 1.5vh 5vw 9vh;
+  gap: 0;
+  justify-content: center;
+}
+
+body.view-vertical h1#song-title  {
+  font-size: clamp(16px, 5.5vw, 40px);
+  margin-bottom: 0.5vh;
+}
+body.view-vertical h2#artist-name {
+  font-size: clamp(11px, 3vw, 22px);
+  margin-bottom: 2vh;
+}
+body.view-vertical .progress-section {
+  margin-bottom: 2vh;
+  width: 92%;
+}
+
+body.view-vertical .controls-section {
+  gap: clamp(20px, 6vw, 56px);
+}
+body.view-vertical .control-btn      { font-size: clamp(22px, 6.5vw, 46px); }
+body.view-vertical #btn-play-pause   {
+  font-size: clamp(28px, 8.5vw, 56px);
+  width: auto;
+}
+
+body.view-vertical #layout-btn,
+body.view-vertical #settings-btn,
+body.view-vertical #bg-switcher { font-size: 26px; }
