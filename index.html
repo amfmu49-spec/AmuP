@@ -40,8 +40,23 @@
       </div>
 
       <div id="corner-controls">
+        <button id="bookmarklet-btn" class="control-btn" aria-label="Bookmarklet" title="ブックマークレット">🔗</button>
         <button id="layout-btn" class="control-btn" aria-label="Toggle Layout" title="レイアウト変更">◫</button>
         <button id="bg-switcher" class="control-btn" aria-label="Change Background" title="背景を切り替え">◨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmarklet Modal -->
+  <div id="bookmarklet-modal">
+    <div id="bookmarklet-modal-inner">
+      <h3>🔗 ブックマークレット</h3>
+      <p>Sunoのプレイリストページで実行するブックマークレットです。
+        以下をコピーしてブラウザのブックマークのURL欄に貼り付けてください。</p>
+      <textarea id="bookmarklet-code" readonly></textarea>
+      <div id="bookmarklet-modal-btns">
+        <button id="bookmarklet-copy-btn">📋 コピー</button>
+        <button id="bookmarklet-close-btn">閉じる</button>
       </div>
     </div>
   </div>

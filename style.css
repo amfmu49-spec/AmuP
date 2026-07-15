@@ -459,3 +459,72 @@ body.view-vertical #btn-play-pause   {
 body.view-vertical #layout-btn,
 body.view-vertical #settings-btn,
 body.view-vertical #bg-switcher { font-size: 26px; }
+
+/* ── Bookmarklet Modal ────────────────────────── */
+#bookmarklet-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+}
+#bookmarklet-modal.visible { display: flex; }
+
+#bookmarklet-modal-inner {
+  background: rgba(20, 15, 10, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 28px 24px;
+  max-width: min(480px, 90vw);
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+}
+#bookmarklet-modal-inner h3 { margin: 0; font-size: 18px; font-weight: 400; color: rgba(255,255,255,0.9); }
+#bookmarklet-modal-inner p  { margin: 0; font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+
+#bookmarklet-code {
+  width: 100%;
+  height: 120px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(0, 255, 100, 0.9);
+  font-family: monospace;
+  font-size: 11px;
+  padding: 10px;
+  box-sizing: border-box;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+}
+
+#bookmarklet-modal-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+#bookmarklet-copy-btn,
+#bookmarklet-close-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+#bookmarklet-copy-btn { background: rgba(0,255,100,0.15); color: rgba(0,255,100,1); }
+#bookmarklet-copy-btn:hover { background: rgba(0,255,100,0.3); }
+#bookmarklet-copy-btn.copied { background: rgba(0,255,100,0.4); color: #fff; }
+#bookmarklet-close-btn { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); }
+#bookmarklet-close-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); }
+

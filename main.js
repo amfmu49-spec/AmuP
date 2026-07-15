@@ -11,6 +11,11 @@ const timeCurrent = document.getElementById('time-current');
 const timeDuration = document.getElementById('time-duration');
 const bgSwitcher = document.getElementById('bg-switcher');
 const layoutBtn = document.getElementById('layout-btn');
+const bookmarkletBtn = document.getElementById('bookmarklet-btn');
+const bookmarkletModal = document.getElementById('bookmarklet-modal');
+const bookmarkletCode = document.getElementById('bookmarklet-code');
+const bookmarkletCopyBtn = document.getElementById('bookmarklet-copy-btn');
+const bookmarkletCloseBtn = document.getElementById('bookmarklet-close-btn');
 const crosshairH = document.getElementById('crosshair-h');
 const crosshairV = document.getElementById('crosshair-v');
 const albumArtFrame = document.getElementById('album-art-frame');
@@ -358,5 +363,52 @@ function showError(msg) {
   titleEl.textContent = "Error";
   artistEl.textContent = msg;
 }
+
+// Bookmarklet Modal Logic
+const BOOKMARKLET_CODE = `javascript:(async function(){
+  try {
+    const match = window.location.pathname.match(/\/playlist\/([a-zA-Z0-9-]+)/);
+    if(!match) {
+      alert("\u3053\u306e\u30da\u30fc\u30b8\u306f\u30d7\u30ec\u30a4\u30ea\u30b9\u30c8\u30da\u30fc\u30b8\u3067\u306f\u3042\u308a\u307e\u305b\u3093");
+      return;
+    }
+    let token = '';
+    if (window.Clerk && window.Clerk.session) {
+      token = await window.Clerk.session.getToken();
+    } else {
+      const cMatch = document.cookie.match(/__session=([^;]+)/);
+      token = cMatch ? cMatch[1] : '';
+    }
+    const url = encodeURIComponent(window.location.href);
+    window.open(\`https://amu-p.vercel.app/?suno=\${url}&token=\${token}\`, '_blank');
+  } catch(e) {
+    alert("Error: " + e.message);
+  }
+})();`;
+
+bookmarkletCode.value = BOOKMARKLET_CODE;
+
+bookmarkletBtn.addEventListener('click', () => {
+  bookmarkletModal.classList.add('visible');
+});
+
+bookmarkletCloseBtn.addEventListener('click', () => {
+  bookmarkletModal.classList.remove('visible');
+});
+
+bookmarkletModal.addEventListener('click', (e) => {
+  if (e.target === bookmarkletModal) bookmarkletModal.classList.remove('visible');
+});
+
+bookmarkletCopyBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(BOOKMARKLET_CODE).then(() => {
+    bookmarkletCopyBtn.textContent = '\u2705 \u30b3\u30d4\u30fc\u5b8c\u4e86';
+    bookmarkletCopyBtn.classList.add('copied');
+    setTimeout(() => {
+      bookmarkletCopyBtn.textContent = '\ud83d\udccb \u30b3\u30d4\u30fc';
+      bookmarkletCopyBtn.classList.remove('copied');
+    }, 2000);
+  });
+});
 
 init();
