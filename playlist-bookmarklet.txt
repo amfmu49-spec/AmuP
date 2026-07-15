@@ -13,7 +13,7 @@ javascript:(async function(){
       token = cMatch ? cMatch[1] : '';
     }
     const url = encodeURIComponent(window.location.href);
-    window.open(`http://192.168.1.26:3005/?suno=${url}&token=${token}`, '_blank');
+    window.open(`https://amu-p.vercel.app/?suno=${url}&token=${token}`, '_blank');
   } catch(e) {
     alert("エラー: " + e.message);
   }
