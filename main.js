@@ -1,4 +1,7 @@
-const audio = document.getElementById('audio-player');
+const audio1 = document.getElementById('audio-player');
+const audio2 = document.getElementById('audio-player-2');
+let activeAudio = audio1;
+let inactiveAudio = audio2;
 const titleEl = document.getElementById('song-title');
 const artistEl = document.getElementById('artist-name');
 const albumArtEl = document.getElementById('album-art');
@@ -141,8 +144,9 @@ function loadTrack() {
   if (playlist.length === 0) return;
   const track = playlist[currentTrackIndex];
   if (track.audio_url) {
-    audio.src = track.audio_url;
-    audio.play().catch(e => console.warn('Autoplay blocked:', e));
+    activeAudio.src = track.audio_url;
+    activeAudio.volume = 1.0;
+    activeAudio.play().catch(e => console.warn('Autoplay blocked:', e));
   }
   if (track.id) {
     loadLyrics(track.id);
@@ -150,78 +154,118 @@ function loadTrack() {
 }
 
 playPauseBtn.addEventListener('click', () => {
-  if (audio.paused) {
-    audio.play();
+  if (activeAudio.paused) {
+    activeAudio.play();
   } else {
-    audio.pause();
+    activeAudio.pause();
   }
 });
 
-audio.addEventListener('play', () => {
-  playPauseBtn.textContent = 'Ⅱ';
-});
+function setupAudioEvents(audioEl) {
+  audioEl.addEventListener('play', () => {
+    if (audioEl === activeAudio) playPauseBtn.textContent = 'Ⅱ';
+  });
+  
+  audioEl.addEventListener('pause', () => {
+    if (audioEl === activeAudio) playPauseBtn.textContent = '▶';
+  });
 
-audio.addEventListener('pause', () => {
-  playPauseBtn.textContent = '▶';
-});
+  audioEl.addEventListener('ended', () => {
+    if (audioEl === activeAudio) {
+      playPauseBtn.textContent = '▶';
+      if (currentTrackIndex < playlist.length - 1) {
+        changeTrackWithFade(currentTrackIndex + 1);
+      }
+    }
+  });
 
-audio.addEventListener('ended', () => {
-  playPauseBtn.textContent = '▶';
-});
+  audioEl.addEventListener('timeupdate', () => {
+    if (audioEl !== activeAudio) return;
+    if (!audioEl.duration) return;
+    seekBar.value = (audioEl.currentTime / audioEl.duration) * 100;
+    timeCurrent.textContent = formatTime(audioEl.currentTime);
+
+    // Lyrics sync logic
+    const ct = audioEl.currentTime;
+    const activeLine = currentLyrics.find(l => ct >= l.start && ct <= l.end);
+    
+    if (activeLine) {
+      if (lyricsOverlay.textContent !== activeLine.text) {
+        lyricsOverlay.textContent = activeLine.text;
+        lyricsOverlay.classList.remove('hidden');
+      }
+    } else {
+      if (!lyricsOverlay.classList.contains('hidden')) {
+        lyricsOverlay.classList.add('hidden');
+      }
+    }
+  });
+
+  audioEl.addEventListener('loadedmetadata', () => {
+    if (audioEl === activeAudio) {
+      timeDuration.textContent = formatTime(audioEl.duration);
+    }
+  });
+}
+
+setupAudioEvents(audio1);
+setupAudioEvents(audio2);
 
 let isFading = false;
 function changeTrackWithFade(newIndex) {
   if (isFading || newIndex < 0 || newIndex >= playlist.length) return;
   isFading = true;
 
-  const fadeDuration = 300;
-  const steps = 15;
+  const fadeDuration = 1000;
+  const steps = 20;
   const stepTime = fadeDuration / steps;
 
-  const doFadeOut = () => {
-    return new Promise(resolve => {
-      if (audio.paused || audio.volume === 0 || !audio.src) {
-        resolve();
-        return;
-      }
-      let currentVol = audio.volume;
-      const volStep = currentVol / steps;
-      const fadeOutInterval = setInterval(() => {
-        currentVol -= volStep;
-        if (currentVol <= 0) {
-          audio.volume = 0;
-          clearInterval(fadeOutInterval);
-          audio.pause();
-          resolve();
-        } else {
-          audio.volume = currentVol;
-        }
-      }, stepTime);
-    });
-  };
+  const fadingOutAudio = activeAudio;
+  const fadingInAudio = inactiveAudio;
 
-  doFadeOut().then(() => {
-    currentTrackIndex = newIndex;
-    updateUI();
-    
-    audio.volume = 0;
-    loadTrack();
-    
-    let inVol = 0;
-    const targetVol = 1.0;
-    const inVolStep = targetVol / steps;
-    
-    const fadeInInterval = setInterval(() => {
-      inVol += inVolStep;
-      if (inVol >= targetVol) {
-        audio.volume = targetVol;
-        clearInterval(fadeInInterval);
-        isFading = false;
-      } else {
-        audio.volume = inVol;
-      }
-    }, stepTime);
-  });
+  activeAudio = fadingInAudio;
+  inactiveAudio = fadingOutAudio;
+
+  currentTrackIndex = newIndex;
+  updateUI();
+  
+  const track = playlist[currentTrackIndex];
+  if (track.audio_url) {
+    activeAudio.src = track.audio_url;
+    activeAudio.volume = 0;
+    activeAudio.play().catch(e => console.warn('Autoplay blocked:', e));
+  }
+  if (track.id) {
+    loadLyrics(track.id);
+  } else {
+    currentLyrics = [];
+    lyricsOverlay.textContent = '';
+    lyricsOverlay.classList.add('hidden');
+  }
+
+  let outVol = fadingOutAudio.paused || fadingOutAudio.volume === 0 || !fadingOutAudio.src ? 0 : fadingOutAudio.volume;
+  const outVolStep = outVol > 0 ? outVol / steps : 0;
+  
+  let inVol = 0;
+  const targetVol = 1.0;
+  const inVolStep = targetVol / steps;
+
+  const crossfadeInterval = setInterval(() => {
+    outVol -= outVolStep;
+    inVol += inVolStep;
+
+    if (outVol <= 0 || inVol >= targetVol) {
+      fadingOutAudio.volume = 0;
+      fadingOutAudio.pause();
+      
+      activeAudio.volume = targetVol;
+      clearInterval(crossfadeInterval);
+      isFading = false;
+    } else {
+      if (outVolStep > 0) fadingOutAudio.volume = outVol;
+      activeAudio.volume = inVol;
+    }
+  }, stepTime);
 }
 
 prevBtn.addEventListener('click', () => {
@@ -244,44 +288,10 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-audio.addEventListener('timeupdate', () => {
-  if (!audio.duration) return;
-  // Update seekbar value only if it's not currently being dragged
-  // To keep it simple, we just update it. A better way would pause updates on drag.
-  seekBar.value = (audio.currentTime / audio.duration) * 100;
-  timeCurrent.textContent = formatTime(audio.currentTime);
-
-  // Lyrics sync logic
-  const ct = audio.currentTime;
-  const activeLine = currentLyrics.find(l => ct >= l.start && ct <= l.end);
-  
-  if (activeLine) {
-    if (lyricsOverlay.textContent !== activeLine.text) {
-      lyricsOverlay.textContent = activeLine.text;
-      lyricsOverlay.classList.remove('hidden');
-    }
-  } else {
-    if (!lyricsOverlay.classList.contains('hidden')) {
-      lyricsOverlay.classList.add('hidden');
-    }
-  }
-});
-
-audio.addEventListener('loadedmetadata', () => {
-  timeDuration.textContent = formatTime(audio.duration);
-});
-
 seekBar.addEventListener('input', () => {
-  if (!audio.duration) return;
-  const seekTo = audio.duration * (seekBar.value / 100);
-  audio.currentTime = seekTo;
-});
-
-// Auto-play next track
-audio.addEventListener('ended', () => {
-  if (currentTrackIndex < playlist.length - 1) {
-    changeTrackWithFade(currentTrackIndex + 1);
-  }
+  if (!activeAudio.duration) return;
+  const seekTo = activeAudio.duration * (seekBar.value / 100);
+  activeAudio.currentTime = seekTo;
 });
 
 // Background Switcher Logic
