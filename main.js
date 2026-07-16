@@ -365,26 +365,7 @@ function showError(msg) {
 }
 
 // Bookmarklet Modal Logic
-const BOOKMARKLET_CODE = `javascript:(async function(){
-  try {
-    const match = window.location.pathname.match(/\/playlist\/([a-zA-Z0-9-]+)/);
-    if(!match) {
-      alert("\u3053\u306e\u30da\u30fc\u30b8\u306f\u30d7\u30ec\u30a4\u30ea\u30b9\u30c8\u30da\u30fc\u30b8\u3067\u306f\u3042\u308a\u307e\u305b\u3093");
-      return;
-    }
-    let token = '';
-    if (window.Clerk && window.Clerk.session) {
-      token = await window.Clerk.session.getToken();
-    } else {
-      const cMatch = document.cookie.match(/__session=([^;]+)/);
-      token = cMatch ? cMatch[1] : '';
-    }
-    const url = encodeURIComponent(window.location.href);
-    window.open(\`https://amu-p.vercel.app/?suno=\${url}&token=\${token}\`, '_blank');
-  } catch(e) {
-    alert("Error: " + e.message);
-  }
-})();`;
+const BOOKMARKLET_CODE = "javascript:(async function(){try{const match=window.location.pathname.match(/\\/playlist\\/([a-zA-Z0-9-]+)/);if(!match){alert(\"\\u3053\\u306e\\u30da\\u30fc\\u30b8\\u306f\\u30d7\\u30ec\\u30a4\\u30ea\\u30b9\\u30c8\\u30da\\u30fc\\u30b8\\u3067\\u306f\\u3042\\u308a\\u307e\\u305b\\u3093\");return;}let token='';if(window.Clerk&&window.Clerk.session){token=await window.Clerk.session.getToken();}else{const cMatch=document.cookie.match(/__session=([^;]+)/);token=cMatch?cMatch[1]:'';}const url=encodeURIComponent(window.location.href);window.open('https://amu-p.vercel.app/?suno='+url+'&token='+token,'_blank');}catch(e){alert('Error: '+e.message);}})();";
 
 bookmarkletCode.value = BOOKMARKLET_CODE;
 
