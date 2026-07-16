@@ -119,7 +119,13 @@ async function loadLyrics(trackId) {
       const data = await res.json();
       const aligned = data.aligned_lyrics || (data.data && data.data.aligned_lyrics) || [];
       if (Array.isArray(aligned) && aligned.length > 0) {
-        currentLyrics = aligned.filter(l => l.text && l.text.trim().length > 0).map((l, i, arr) => {
+        currentLyrics = aligned.filter(l => {
+           if (!l.text) return false;
+           const t = l.text.trim();
+           if (t.length === 0) return false;
+           if (t.startsWith('[') && t.endsWith(']')) return false;
+           return true;
+        }).map((l, i, arr) => {
            let start = typeof l.start_s === 'number' ? l.start_s : 0;
            let end = typeof l.end_s === 'number' ? l.end_s : (arr[i+1]?.start_s || start + 2);
            return { text: l.text.trim(), start, end };
