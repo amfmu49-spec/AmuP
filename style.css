@@ -477,10 +477,6 @@ body.view-vertical #bg-switcher { font-size: 26px; }
   z-index: 10;
   opacity: 1;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 10px 20px;
-  border-radius: 12px;
-  backdrop-filter: blur(2px);
 }
 #lyrics-overlay.hidden {
   opacity: 0;
