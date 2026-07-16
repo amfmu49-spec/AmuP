@@ -52,7 +52,7 @@ async function init() {
 
 async function loadPlaylist(playlistId, token) {
   try {
-    const res = await fetch(`/api/playlist/${playlistId}/?page=1`, {
+    const res = await fetch(`/api/playlist/${playlistId}?page=1`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
