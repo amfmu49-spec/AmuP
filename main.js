@@ -216,8 +216,8 @@ function changeTrackWithFade(newIndex) {
   if (isFading || newIndex < 0 || newIndex >= playlist.length) return;
   isFading = true;
 
-  const fadeDuration = 2500;
-  const steps = 50;
+  const fadeDuration = 1700;
+  const steps = 34; // 1700 / 50 = 34 steps to maintain 50ms step time
   const stepTime = fadeDuration / steps;
 
   const fadingOutAudio = activeAudio;
