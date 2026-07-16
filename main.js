@@ -216,8 +216,8 @@ function changeTrackWithFade(newIndex) {
   if (isFading || newIndex < 0 || newIndex >= playlist.length) return;
   isFading = true;
 
-  const fadeDuration = 1000;
-  const steps = 20;
+  const fadeDuration = 2500;
+  const steps = 50;
   const stepTime = fadeDuration / steps;
 
   const fadingOutAudio = activeAudio;
@@ -259,10 +259,9 @@ function changeTrackWithFade(newIndex) {
         isFading = false;
       } else {
         if (outVolStep > 0) {
-          // Equal power crossfade to prevent volume dip
-          fadingOutAudio.volume = Math.min(1.0, Math.sqrt(outVol));
+          fadingOutAudio.volume = outVol;
         }
-        activeAudio.volume = Math.min(1.0, Math.sqrt(inVol));
+        activeAudio.volume = inVol;
       }
     }, stepTime);
   };
