@@ -239,18 +239,16 @@ function changeTrackWithFade(newIndex) {
   }
 
   const startCrossfade = () => {
-    let outVol = fadingOutAudio.paused || fadingOutAudio.volume === 0 || !fadingOutAudio.src ? 0 : fadingOutAudio.volume;
-    const outVolStep = outVol > 0 ? outVol / steps : 0;
-    
-    let inVol = 0;
+    const startOutVol = fadingOutAudio.paused || fadingOutAudio.volume === 0 || !fadingOutAudio.src ? 0 : fadingOutAudio.volume;
     const targetVol = 1.0;
-    const inVolStep = targetVol / steps;
+    
+    let currentStep = 0;
 
     const crossfadeInterval = setInterval(() => {
-      outVol -= outVolStep;
-      inVol += inVolStep;
+      currentStep++;
+      const progress = currentStep / steps;
 
-      if (outVol <= 0 || inVol >= targetVol) {
+      if (progress >= 1) {
         fadingOutAudio.volume = 0;
         fadingOutAudio.pause();
         
@@ -258,10 +256,12 @@ function changeTrackWithFade(newIndex) {
         clearInterval(crossfadeInterval);
         isFading = false;
       } else {
-        if (outVolStep > 0) {
-          fadingOutAudio.volume = outVol;
+        if (startOutVol > 0) {
+          // Quadratic taper for natural hearing fade-out
+          fadingOutAudio.volume = startOutVol * Math.pow(1 - progress, 2);
         }
-        activeAudio.volume = inVol;
+        // Quadratic taper for fade-in
+        activeAudio.volume = targetVol * Math.pow(progress, 2);
       }
     }, stepTime);
   };
