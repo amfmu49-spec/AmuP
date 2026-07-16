@@ -19,14 +19,18 @@ const bookmarkletCloseBtn = document.getElementById('bookmarklet-close-btn');
 const crosshairH = document.getElementById('crosshair-h');
 const crosshairV = document.getElementById('crosshair-v');
 const albumArtFrame = document.getElementById('album-art-frame');
+const lyricsOverlay = document.getElementById('lyrics-overlay');
 
 let playlist = [];
 let currentTrackIndex = 0;
+let authToken = '';
+let currentLyrics = [];
 
 async function init() {
   const params = new URLSearchParams(window.location.search);
   const sunoUrl = params.get('suno');
   const token = params.get('token');
+  authToken = token;
 
   if (sunoUrl && token) {
     const match = sunoUrl.match(/\/playlist\/([a-zA-Z0-9-]+)/);
@@ -100,12 +104,42 @@ function updateUI() {
   }, 500);
 }
 
+async function loadLyrics(trackId) {
+  currentLyrics = [];
+  lyricsOverlay.textContent = '';
+  lyricsOverlay.classList.add('hidden');
+  
+  if (!authToken) return;
+  
+  try {
+    const res = await fetch(`/api/lyrics/${trackId}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const aligned = data.aligned_lyrics || (data.data && data.data.aligned_lyrics) || [];
+      if (Array.isArray(aligned) && aligned.length > 0) {
+        currentLyrics = aligned.filter(l => l.text && l.text.trim().length > 0).map((l, i, arr) => {
+           let start = typeof l.start_s === 'number' ? l.start_s : 0;
+           let end = typeof l.end_s === 'number' ? l.end_s : (arr[i+1]?.start_s || start + 2);
+           return { text: l.text.trim(), start, end };
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to load lyrics", e);
+  }
+}
+
 function loadTrack() {
   if (playlist.length === 0) return;
   const track = playlist[currentTrackIndex];
   if (track.audio_url) {
     audio.src = track.audio_url;
     audio.play().catch(e => console.warn('Autoplay blocked:', e));
+  }
+  if (track.id) {
+    loadLyrics(track.id);
   }
 }
 
@@ -159,6 +193,21 @@ audio.addEventListener('timeupdate', () => {
   // To keep it simple, we just update it. A better way would pause updates on drag.
   seekBar.value = (audio.currentTime / audio.duration) * 100;
   timeCurrent.textContent = formatTime(audio.currentTime);
+
+  // Lyrics sync logic
+  const ct = audio.currentTime;
+  const activeLine = currentLyrics.find(l => ct >= l.start && ct <= l.end);
+  
+  if (activeLine) {
+    if (lyricsOverlay.textContent !== activeLine.text) {
+      lyricsOverlay.textContent = activeLine.text;
+      lyricsOverlay.classList.remove('hidden');
+    }
+  } else {
+    if (!lyricsOverlay.classList.contains('hidden')) {
+      lyricsOverlay.classList.add('hidden');
+    }
+  }
 });
 
 audio.addEventListener('loadedmetadata', () => {

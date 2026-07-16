@@ -460,6 +460,33 @@ body.view-vertical #layout-btn,
 body.view-vertical #settings-btn,
 body.view-vertical #bg-switcher { font-size: 26px; }
 
+/* ── Lyrics Overlay ───────────────────────────── */
+#lyrics-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  text-align: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.2rem, 3vw, 2.5rem);
+  font-weight: 400;
+  color: #fff;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.6);
+  pointer-events: none;
+  z-index: 10;
+  opacity: 1;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px 20px;
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+}
+#lyrics-overlay.hidden {
+  opacity: 0;
+  transform: translate(-50%, -40%);
+}
+
 /* ── Bookmarklet Modal ────────────────────────── */
 #bookmarklet-modal {
   display: none;
