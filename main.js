@@ -169,19 +169,70 @@ audio.addEventListener('ended', () => {
   playPauseBtn.textContent = '▶';
 });
 
+let isFading = false;
+function changeTrackWithFade(newIndex) {
+  if (isFading || newIndex < 0 || newIndex >= playlist.length) return;
+  isFading = true;
+
+  const fadeDuration = 300;
+  const steps = 15;
+  const stepTime = fadeDuration / steps;
+
+  const doFadeOut = () => {
+    return new Promise(resolve => {
+      if (audio.paused || audio.volume === 0 || !audio.src) {
+        resolve();
+        return;
+      }
+      let currentVol = audio.volume;
+      const volStep = currentVol / steps;
+      const fadeOutInterval = setInterval(() => {
+        currentVol -= volStep;
+        if (currentVol <= 0) {
+          audio.volume = 0;
+          clearInterval(fadeOutInterval);
+          audio.pause();
+          resolve();
+        } else {
+          audio.volume = currentVol;
+        }
+      }, stepTime);
+    });
+  };
+
+  doFadeOut().then(() => {
+    currentTrackIndex = newIndex;
+    updateUI();
+    
+    audio.volume = 0;
+    loadTrack();
+    
+    let inVol = 0;
+    const targetVol = 1.0;
+    const inVolStep = targetVol / steps;
+    
+    const fadeInInterval = setInterval(() => {
+      inVol += inVolStep;
+      if (inVol >= targetVol) {
+        audio.volume = targetVol;
+        clearInterval(fadeInInterval);
+        isFading = false;
+      } else {
+        audio.volume = inVol;
+      }
+    }, stepTime);
+  });
+}
+
 prevBtn.addEventListener('click', () => {
   if (currentTrackIndex > 0) {
-    currentTrackIndex--;
-    updateUI();
-    loadTrack();
+    changeTrackWithFade(currentTrackIndex - 1);
   }
 });
 
 nextBtn.addEventListener('click', () => {
   if (currentTrackIndex < playlist.length - 1) {
-    currentTrackIndex++;
-    updateUI();
-    loadTrack();
+    changeTrackWithFade(currentTrackIndex + 1);
   }
 });
 
@@ -229,9 +280,7 @@ seekBar.addEventListener('input', () => {
 // Auto-play next track
 audio.addEventListener('ended', () => {
   if (currentTrackIndex < playlist.length - 1) {
-    currentTrackIndex++;
-    updateUI();
-    loadTrack();
+    changeTrackWithFade(currentTrackIndex + 1);
   }
 });
 
