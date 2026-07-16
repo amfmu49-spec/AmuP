@@ -230,11 +230,6 @@ function changeTrackWithFade(newIndex) {
   updateUI();
   
   const track = playlist[currentTrackIndex];
-  if (track.audio_url) {
-    activeAudio.src = track.audio_url;
-    activeAudio.volume = 0;
-    activeAudio.play().catch(e => console.warn('Autoplay blocked:', e));
-  }
   if (track.id) {
     loadLyrics(track.id);
   } else {
@@ -243,29 +238,53 @@ function changeTrackWithFade(newIndex) {
     lyricsOverlay.classList.add('hidden');
   }
 
-  let outVol = fadingOutAudio.paused || fadingOutAudio.volume === 0 || !fadingOutAudio.src ? 0 : fadingOutAudio.volume;
-  const outVolStep = outVol > 0 ? outVol / steps : 0;
-  
-  let inVol = 0;
-  const targetVol = 1.0;
-  const inVolStep = targetVol / steps;
+  const startCrossfade = () => {
+    let outVol = fadingOutAudio.paused || fadingOutAudio.volume === 0 || !fadingOutAudio.src ? 0 : fadingOutAudio.volume;
+    const outVolStep = outVol > 0 ? outVol / steps : 0;
+    
+    let inVol = 0;
+    const targetVol = 1.0;
+    const inVolStep = targetVol / steps;
 
-  const crossfadeInterval = setInterval(() => {
-    outVol -= outVolStep;
-    inVol += inVolStep;
+    const crossfadeInterval = setInterval(() => {
+      outVol -= outVolStep;
+      inVol += inVolStep;
 
-    if (outVol <= 0 || inVol >= targetVol) {
-      fadingOutAudio.volume = 0;
-      fadingOutAudio.pause();
-      
-      activeAudio.volume = targetVol;
-      clearInterval(crossfadeInterval);
-      isFading = false;
-    } else {
-      if (outVolStep > 0) fadingOutAudio.volume = outVol;
-      activeAudio.volume = inVol;
-    }
-  }, stepTime);
+      if (outVol <= 0 || inVol >= targetVol) {
+        fadingOutAudio.volume = 0;
+        fadingOutAudio.pause();
+        
+        activeAudio.volume = targetVol;
+        clearInterval(crossfadeInterval);
+        isFading = false;
+      } else {
+        if (outVolStep > 0) {
+          // Equal power crossfade to prevent volume dip
+          fadingOutAudio.volume = Math.min(1.0, Math.sqrt(outVol));
+        }
+        activeAudio.volume = Math.min(1.0, Math.sqrt(inVol));
+      }
+    }, stepTime);
+  };
+
+  if (track.audio_url) {
+    activeAudio.src = track.audio_url;
+    activeAudio.volume = 0;
+    
+    const onPlaying = () => {
+      activeAudio.removeEventListener('playing', onPlaying);
+      startCrossfade();
+    };
+    activeAudio.addEventListener('playing', onPlaying);
+    
+    activeAudio.play().catch(e => {
+      console.warn('Autoplay blocked:', e);
+      activeAudio.removeEventListener('playing', onPlaying);
+      startCrossfade();
+    });
+  } else {
+    startCrossfade();
+  }
 }
 
 prevBtn.addEventListener('click', () => {
